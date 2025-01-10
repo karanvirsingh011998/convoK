@@ -3,14 +3,10 @@ import { Outlet, useNavigate } from "react-router-dom"
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu"
 import FooterComponent from "../components/footer"
+import { logout } from "../utils/auth"
 
-export const PrivateLayout = ({setIsAuthenticated}: any) => {
+export const PrivateLayout = () => {
   const navigate = useNavigate()
-  const logout = () => {
-    localStorage.removeItem('isAuthenticated');
-    setIsAuthenticated(false)
-    navigate('/login');
-  };
 
   const goToPage = (text: string) => {
     navigate(text);
@@ -32,6 +28,7 @@ export const PrivateLayout = ({setIsAuthenticated}: any) => {
                 </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
+                <DropdownMenuItem onClick={()=> goToPage('/dashboard')}>Dashboard</DropdownMenuItem>
                 <DropdownMenuItem onClick={()=> goToPage('/profile')}>Profile</DropdownMenuItem>
                 <DropdownMenuItem onClick={()=> goToPage('/settings')}>Settings</DropdownMenuItem>
                 <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>

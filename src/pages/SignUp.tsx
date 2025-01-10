@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
-import { Button } from "./ui/button"
+import { Button } from "../components/ui/button"
 import {
   Form,
   FormControl,
@@ -9,11 +9,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form"
-import { Input } from "./ui/input"
+} from "../components/ui/form"
+import { Input } from "../components/ui/input"
 import { Link } from "react-router-dom"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
 import { cn } from "../lib/utils"
+import { useNavigate } from "react-router-dom"
 
 const signUpSchema = yup.object({
   username: yup
@@ -41,10 +42,9 @@ const signUpSchema = yup.object({
 type SignUpFormData = yup.InferType<typeof signUpSchema>
 
 export function SignUpForm({
-  setIsAuthenticated,
   className,
   ...props
-}: React.ComponentPropsWithoutRef<"div"> & { setIsAuthenticated: (isAuthenticated: boolean) => void }) {
+}: React.ComponentPropsWithoutRef<"div">) {
   const form = useForm<SignUpFormData>({
     resolver: yupResolver(signUpSchema),
     defaultValues: {
@@ -55,10 +55,30 @@ export function SignUpForm({
     },
   })
 
+  const navigate = useNavigate()
+
   const onSubmit = async (data: SignUpFormData) => {
     try {
-      // Handle sign up logic here
-      console.log(data)
+      const existingUsers = JSON.parse(sessionStorage.getItem('users') || '[]');
+      
+      const userExists = existingUsers.some((user: SignUpFormData) => 
+        user.email === data.email || user.username === data.username
+      );
+
+      if (userExists) {
+        form.setError('email', { 
+          type: 'manual', 
+          message: 'An account with this email or username already exists' 
+        });
+        return;
+      }
+
+      // Add new user to the users array
+      existingUsers.push(data);
+      sessionStorage.setItem('users', JSON.stringify(existingUsers));
+      
+      navigate('/login');
+      
     } catch (error) {
       console.error("Sign up failed:", error)
     }

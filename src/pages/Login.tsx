@@ -1,17 +1,18 @@
 import { cn } from "../lib/utils"
-import { Button } from "./ui/button"
+import { Button } from "../components/ui/button"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "./ui/card"
-import { Input } from "./ui/input"
-import { Label } from "./ui/label"
+} from "../components/ui/card"
+import { Input } from "../components/ui/input"
+import { Label } from "../components/ui/label"
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
+import { useNavigate } from "react-router-dom";
 
 const loginValidationSchema = yup.object({
   email: yup
@@ -30,23 +31,42 @@ type FormData = {
 }
 
 export function LoginForm({
-    setIsAuthenticated,
     className,
     ...props
-  }: React.ComponentPropsWithoutRef<"div"> & { setIsAuthenticated: (isAuthenticated: boolean) => void }) {
+  }: React.ComponentPropsWithoutRef<"div">) {
   const {
     register,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm<FormData>({
     resolver: yupResolver(loginValidationSchema),
   })
 
-  const onSubmit = (data: FormData) =>{
-    console.log('data', data)
-    localStorage.setItem('isAuthenticated', 'true')
-    setIsAuthenticated(true)
+  const navigate = useNavigate();
 
+  const onSubmit = async (data: FormData) => {
+    try {
+      const users = JSON.parse(sessionStorage.getItem('users') || '[]');
+      
+      const user = users.find((u: any) => 
+        u.email === data.email && u.password === data.password
+      );
+
+      if (!user) {
+        setError('email', { 
+          type: 'manual', 
+          message: 'Invalid email or password' 
+        });
+        return;
+      }
+
+      sessionStorage.setItem('currentUser', JSON.stringify(user));
+      
+      navigate('/dashboard');
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   }
 
   return (
@@ -104,8 +124,7 @@ export function LoginForm({
   )
 }
 
-//Second Design
-
+// Second Design
 // import { cn } from "../lib/utils"
 // import { Button } from "./ui/button"
 // import { Card, CardContent } from "./ui/card"
