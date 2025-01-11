@@ -126,7 +126,7 @@ export default function LandingPage() {
     }
   ];
 
-  return (
+    return (
     <div className="min-h-screen">
       {/* Hero Section - Enhanced */}
       <section className="relative py-20 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center min-h-[90vh] bg-gradient-to-b from-background to-primary/5">
@@ -287,7 +287,7 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
-      </section>
+            </section>
 
       {/* Testimonials Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-primary/5">
@@ -295,7 +295,7 @@ export default function LandingPage() {
           <h2 className="text-3xl font-bold text-center mb-12">
             What Our Users Say
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+                    <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
               <div 
                 key={index} 
@@ -392,9 +392,9 @@ export default function LandingPage() {
                     <div className="font-semibold">Mobile Responsive</div>
                     <div className="text-sm text-muted-foreground">
                       Works perfectly on all devices
-                    </div>
-                  </div>
-                </div>
+                        </div>
+                        </div>
+                        </div>
                 <div className="flex items-center gap-4">
                   <Globe className="h-12 w-12 text-primary" />
                   <div>

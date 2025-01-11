@@ -12,7 +12,6 @@ import { Label } from "../components/ui/label"
 import { useForm } from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
-import { useNavigate } from "react-router-dom";
 import { useToast } from "../hooks/use-toast"
 
 const loginValidationSchema = yup.object({
@@ -46,8 +45,6 @@ export function LoginForm({
 
   const { toast } = useToast()
 
-  const navigate = useNavigate();
-
   const onSubmit = async (data: FormData) => {
     try {
       const users = JSON.parse(sessionStorage.getItem('users') || '[]');
@@ -69,7 +66,7 @@ export function LoginForm({
         title: "User Found",
         description: "We are comming soon with the dashboard page",
       })
-      
+
       return 
 
       sessionStorage.setItem('currentUser', JSON.stringify(user));
