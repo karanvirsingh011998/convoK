@@ -15,6 +15,7 @@ import { Link } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
 import { cn } from "../lib/utils"
 import { useNavigate } from "react-router-dom"
+import { useToast } from "../hooks/use-toast"
 
 const signUpSchema = yup.object({
   username: yup
@@ -54,6 +55,7 @@ export function SignUpForm({
       confirmPassword: "",
     },
   })
+  const { toast } = useToast()
 
   const navigate = useNavigate()
 
@@ -77,6 +79,10 @@ export function SignUpForm({
       existingUsers.push(data);
       sessionStorage.setItem('users', JSON.stringify(existingUsers));
       
+      toast({
+        title: "User Created",
+        description: "Please login with the credentials",
+      })
       navigate('/login');
       
     } catch (error) {
