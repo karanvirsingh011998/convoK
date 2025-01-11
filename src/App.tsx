@@ -6,6 +6,9 @@ import { LoginForm } from './pages/Login'
 import { SignUpForm } from './pages/SignUp'
 import LandingPage from './pages/LandingPage'
 import { initializeAdminUser } from './utils/auth'
+import { Profile } from './pages/Profile'
+import { Dashboard } from './pages/Dashboard'
+import { Settings } from './pages/Settings'
 import { NotFound } from './pages/NotFound'
 
 function App() {
@@ -24,12 +27,12 @@ function App() {
 
       {/* Private Routes */}
       <Route element={<PrivateLayout />}>
-        {/* <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} /> */}
+        <Route path="/settings" element={<Settings />} />
       </Route>
-
       <Route path="*" element={<NotFound />} />
+
     </Routes>
   )
 }
