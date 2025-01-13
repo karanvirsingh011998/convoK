@@ -60,6 +60,8 @@ export function Dashboard() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
+  console.log(showAttachmentDialog);
+  console.log(uploadProgress);
   useEffect(() => {
     const handleResize = () => {
       setIsMobileView(window.innerWidth < 768);
@@ -337,9 +339,9 @@ export function Dashboard() {
               </div>
               <span className="font-semibold">{currentUser?.username}</span>
             </div>
-            <Button variant="ghost" size="icon">
+            {/* <Button variant="ghost" size="icon">
               <Menu className="h-5 w-5" />
-            </Button>
+            </Button> */}
           </div>
 
           {/* Search */}
@@ -438,7 +440,7 @@ export function Dashboard() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                {/* <div className="flex items-center gap-2">
                   <Button variant="ghost" size="icon">
                     <Phone className="h-5 w-5" />
                   </Button>
@@ -448,7 +450,7 @@ export function Dashboard() {
                   <Button variant="ghost" size="icon">
                     <MoreVertical className="h-5 w-5" />
                   </Button>
-                </div>
+                </div> */}
               </div>
 
               {/* Messages Area */}
