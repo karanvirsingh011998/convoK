@@ -3,7 +3,6 @@ import App from './App.tsx'
 import { ThemeProvider } from './components/theme-provider.tsx'
 import { HashRouter } from 'react-router-dom'
 import { Toaster } from './components/ui/toaster.tsx'
-import { AuthProvider } from './contexts/AuthContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
