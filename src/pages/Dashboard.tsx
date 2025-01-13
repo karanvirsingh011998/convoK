@@ -2,7 +2,27 @@ import { useState, useEffect, useRef } from "react";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
-import { Search } from "lucide-react";
+import { 
+  Search, 
+  Menu, 
+  Send, 
+  MoreVertical, 
+  Phone, 
+  Video, 
+  ChevronLeft,
+  Paperclip,
+  Mic
+} from "lucide-react";
+import { cn } from "../lib/utils";
+import { EmojiPicker } from "../components/EmojiPicker";
+import { toast } from "../hooks/use-toast";
+
+interface Attachment {
+  type: 'image' | 'file';
+  url: string;
+  name: string;
+  size?: number;
+}
 
 interface Message {
   id: string;
@@ -10,11 +30,16 @@ interface Message {
   sender: string;
   receiver: string;
   timestamp: Date;
+  status: 'sent' | 'delivered' | 'read';
+  attachments?: Attachment[];
+  isRecording?: boolean;
 }
 
 interface User {
   username: string;
   email: string;
+  status?: 'online' | 'offline';
+  lastSeen?: Date;
 }
 
 export function Dashboard() {
@@ -27,6 +52,13 @@ export function Dashboard() {
   const [isMobileView, setIsMobileView] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [showAttachmentDialog, setShowAttachmentDialog] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -79,6 +111,10 @@ export function Dashboard() {
       {
         username: "Help Desk2",
         email: "help2@yopmail.com"
+      },
+      {
+        username: "System Admin2",
+        email: "sysadmin2@yopmail.com"
       }
     ];
 
@@ -101,16 +137,14 @@ export function Dashboard() {
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !currentUser || !selectedUser) return;
+  const handleSendMessage = (e?: React.FormEvent, attachment?: Attachment) => {
+    e?.preventDefault();
+    if ((!newMessage.trim() && !attachment) || !currentUser || !selectedUser) return;
 
     const message: Message = {
       id: Date.now().toString(),
@@ -118,6 +152,8 @@ export function Dashboard() {
       sender: currentUser.username,
       receiver: selectedUser.username,
       timestamp: new Date(),
+      status: 'sent',
+      attachments: attachment ? [attachment] : undefined
     };
 
     const updatedMessages = [...messages, message];
@@ -160,51 +196,205 @@ export function Dashboard() {
     setShowChat(true);
   };
 
+  const handleEmojiSelect = (emoji: string) => {
+    setNewMessage(prev => prev + emoji);
+  };
+
+  const handleFileAttachment = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Simulate file upload with progress
+    setShowAttachmentDialog(true);
+    for (let i = 0; i <= 100; i += 10) {
+      setUploadProgress(i);
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+
+    // Create attachment message
+    const attachment: Attachment = {
+      type: file.type.startsWith('image/') ? 'image' : 'file',
+      url: URL.createObjectURL(file),
+      name: file.name,
+      size: file.size
+    };
+
+    handleSendMessage(undefined, attachment);
+    setShowAttachmentDialog(false);
+    setUploadProgress(0);
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        
+        const attachment: Attachment = {
+          type: 'file',
+          url: audioUrl,
+          name: 'Voice Message',
+        };
+
+        handleSendMessage(undefined, attachment);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+
+      // Update recording time
+      const startTime = Date.now();
+      const timeInterval = setInterval(() => {
+        setRecordingTime(Math.floor((Date.now() - startTime) / 1000));
+      }, 1000);
+
+      // Stop recording after 1 minute
+      setTimeout(() => {
+        if (mediaRecorderRef.current?.state === 'recording') {
+          stopRecording();
+          clearInterval(timeInterval);
+        }
+      }, 60000);
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Could not access microphone",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current?.state === 'recording') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      setRecordingTime(0);
+    }
+  };
+
+  const renderMessage = (message: Message) => {
+    return (
+      <>
+        {message.text && <div>{message.text}</div>}
+        {message.attachments?.map((attachment, index) => (
+          <div key={index} className="mt-2">
+            {attachment.type === 'image' ? (
+              <img 
+                src={attachment.url} 
+                alt={attachment.name}
+                className="max-w-[200px] rounded-md"
+              />
+            ) : (
+              <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                <div className="flex-1 truncate">{attachment.name}</div>
+                {attachment.name === 'Voice Message' ? (
+                  <audio controls className="h-8">
+                    <source src={attachment.url} type="audio/wav" />
+                  </audio>
+                ) : (
+                  <a 
+                    href={attachment.url} 
+                    download={attachment.name}
+                    className="text-primary hover:underline"
+                  >
+                    Download
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </>
+    );
+  };
+
   return (
-    <div className="container h-[calc(100vh-2rem)] mx-auto py-4">
+    <div className="h-[calc(100vh-2rem)] mx-auto py-4 container">
       <Card className="h-full grid md:grid-cols-[350px,1fr] overflow-hidden">
-        <div className={`${isMobileView && showChat ? 'hidden' : 'block'} border-r flex flex-col`}>
-          <div className="p-4 border-b">
+        {/* Contacts Panel */}
+        <div 
+          className={cn(
+            "flex flex-col h-full border-r",
+            isMobileView && showChat ? 'hidden' : 'block'
+          )}
+        >
+          {/* Header */}
+          <div className="p-4 border-b bg-card flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+                {currentUser?.username?.[0].toUpperCase()}
+              </div>
+              <span className="font-semibold">{currentUser?.username}</span>
+            </div>
+            <Button variant="ghost" size="icon">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Search */}
+          <div className="sticky top-0 z-10 p-2 border-b bg-card">
             <div className="relative">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search contacts..."
+                placeholder="Search or start new chat"
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
-          <div className="flex-1">
+
+          {/* Contacts List */}
+          <div 
+            className="flex-1 overflow-y-auto scrollbar-thin"
+            style={{ 
+              maxHeight: 'calc(100vh - 13rem)'
+            }}
+          >
             {getFilteredUsers().map((user) => {
               const lastMessage = getLastMessage(user);
               return (
                 <div
                   key={user.email}
-                  className={`p-4 border-b cursor-pointer hover:bg-muted transition-colors ${
-                    selectedUser?.email === user.email ? 'bg-muted' : ''
-                  }`}
+                  className={cn(
+                    "p-3 flex items-center gap-3 cursor-pointer hover:bg-muted transition-colors",
+                    selectedUser?.email === user.email && 'bg-muted'
+                  )}
                   onClick={() => handleUserSelect(user)}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
                       {user.username[0].toUpperCase()}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline">
-                        <h3 className="font-medium truncate">{user.username}</h3>
-                        {lastMessage && (
-                          <span className="text-xs text-muted-foreground">
-                            {formatTime(lastMessage.timestamp)}
-                          </span>
-                        )}
-                      </div>
+                    {user.status === 'online' && (
+                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-baseline">
+                      <h3 className="font-medium truncate">{user.username}</h3>
                       {lastMessage && (
-                        <p className="text-sm text-muted-foreground truncate">
-                          {lastMessage.text}
-                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          {formatTime(lastMessage.timestamp)}
+                        </span>
                       )}
                     </div>
+                    {lastMessage && (
+                      <p className="text-sm text-muted-foreground truncate">
+                        {lastMessage.sender === currentUser?.username ? '✓ ' : ''}{lastMessage.text}
+                      </p>
+                    )}
                   </div>
                 </div>
               );
@@ -212,73 +402,146 @@ export function Dashboard() {
           </div>
         </div>
 
-        <div className={`${isMobileView && !showChat ? 'hidden' : 'block'} flex flex-col h-full`}>
+        {/* Chat Panel */}
+        <div 
+          className={cn(
+            "flex flex-col h-full bg-muted/30",
+            isMobileView && !showChat ? 'hidden' : 'block'
+          )}
+        >
           {selectedUser ? (
             <>
-              <div className="p-4 border-b flex items-center gap-3 sticky top-0 bg-background z-10">
+              {/* Chat Header */}
+              <div className="p-3 border-b bg-card flex items-center gap-3 sticky top-0 z-10">
                 {isMobileView && (
                   <Button 
                     variant="ghost" 
-                    size="sm"
+                    size="icon"
                     onClick={() => setShowChat(false)}
                   >
-                    Back
+                    <ChevronLeft className="h-5 w-5" />
                   </Button>
                 )}
-                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
-                  {selectedUser.username[0].toUpperCase()}
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="relative">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                      {selectedUser.username[0].toUpperCase()}
+                    </div>
+                    {selectedUser.status === 'online' && (
+                      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-background" />
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="font-medium">{selectedUser.username}</h2>
+                    <p className="text-xs text-muted-foreground">
+                      {selectedUser.status === 'online' ? 'Online' : 'Offline'}
+                    </p>
+                  </div>
                 </div>
-                <h2 className="font-medium">{selectedUser.username}</h2>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon">
+                    <Phone className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="icon">
+                    <Video className="h-5 w-5" />
+                  </Button>
+                  <Button variant="ghost" size="icon">
+                    <MoreVertical className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto h-[calc(100vh-15rem)]">
-                <div className="space-y-4 p-4 min-h-full">
-                  {getCurrentChat().length === 0 ? (
-                    <div className="text-center text-muted-foreground py-8">
-                      No messages yet. Start the conversation!
-                    </div>
-                  ) : (
-                    getCurrentChat().map((message) => (
+              {/* Messages Area */}
+              <div 
+                ref={chatContainerRef}
+                className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin"
+                style={{ 
+                  maxHeight: 'calc(100vh - 13rem)'
+                }}
+              >
+                {getCurrentChat().length === 0 ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    No messages yet. Start the conversation!
+                  </div>
+                ) : (
+                  getCurrentChat().map((message) => (
+                    <div
+                      key={message.id}
+                      className={cn(
+                        "flex flex-col max-w-[85%]",
+                        message.sender === currentUser?.username ? "ml-auto" : "mr-auto"
+                      )}
+                    >
                       <div
-                        key={message.id}
-                        className={`flex flex-col ${
+                        className={cn(
+                          "rounded-lg p-3 break-words",
                           message.sender === currentUser?.username
-                            ? "items-end"
-                            : "items-start"
-                        }`}
+                            ? "bg-primary text-primary-foreground rounded-br-none"
+                            : "bg-card rounded-bl-none"
+                        )}
                       >
-                        <div
-                          className={`max-w-[80%] rounded-lg p-3 ${
-                            message.sender === currentUser?.username
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted"
-                          }`}
-                        >
-                          <div className="break-words">{message.text}</div>
-                          <div className="text-xs opacity-70 mt-1">
-                            {formatTime(message.timestamp)}
-                          </div>
+                        {renderMessage(message)}
+                        <div className="text-xs opacity-70 mt-1 flex items-center justify-end gap-1">
+                          {formatTime(message.timestamp)}
+                          {message.sender === currentUser?.username && (
+                            <span>✓</span>
+                          )}
                         </div>
                       </div>
-                    ))
-                  )}
-                  <div ref={messagesEndRef} />
-                </div>
+                    </div>
+                  ))
+                )}
+                <div ref={messagesEndRef} />
               </div>
 
-              <div className="p-4 border-t sticky bottom-0 bg-background z-10">
+              {/* Message Input */}
+              <div className="p-3 bg-card border-t">
                 <form 
                   onSubmit={handleSendMessage} 
-                  className="flex gap-2"
+                  className="flex items-center gap-2"
                 >
+                  <EmojiPicker onChange={handleEmojiSelect} />
+                  <input
+                    type="file"
+                    id="file-attachment"
+                    className="hidden"
+                    onChange={handleFileAttachment}
+                  />
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => document.getElementById('file-attachment')?.click()}
+                  >
+                    <Paperclip className="h-5 w-5" />
+                  </Button>
                   <Input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Type your message..."
+                    placeholder="Type a message"
                     className="flex-1"
                   />
-                  <Button type="submit">Send</Button>
+                  {newMessage.trim() ? (
+                    <Button type="submit" size="icon">
+                      <Send className="h-5 w-5" />
+                    </Button>
+                  ) : (
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={isRecording ? stopRecording : startRecording}
+                      className={isRecording ? "animate-pulse text-red-500" : ""}
+                    >
+                      <Mic className="h-5 w-5" />
+                    </Button>
+                  )}
                 </form>
+                {isRecording && (
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Recording: {recordingTime}s
+                  </div>
+                )}
               </div>
             </>
           ) : (
