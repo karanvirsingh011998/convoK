@@ -3,12 +3,8 @@ import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import { 
-  Search, 
-  Menu, 
+  Search,
   Send, 
-  MoreVertical, 
-  Phone, 
-  Video, 
   ChevronLeft,
   Paperclip,
   Mic
@@ -16,6 +12,7 @@ import {
 import { cn } from "../lib/utils";
 import { EmojiPicker } from "../components/EmojiPicker";
 import { toast } from "../hooks/use-toast";
+import { Link } from "react-router-dom";
 
 interface Attachment {
   type: 'image' | 'file';
@@ -305,13 +302,13 @@ export function Dashboard() {
                     <source src={attachment.url} type="audio/wav" />
                   </audio>
                 ) : (
-                  <a 
-                    href={attachment.url} 
+                  <Link
+                    to={attachment.url} 
                     download={attachment.name}
                     className="text-primary hover:underline"
                   >
                     Download
-                  </a>
+                  </Link>
                 )}
               </div>
             )}
