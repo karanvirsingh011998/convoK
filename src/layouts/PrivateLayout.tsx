@@ -1,5 +1,5 @@
 import { ThemeToggle } from "../components/theme-toggle"
-import { Outlet, useNavigate } from "react-router-dom"
+import { Link, Outlet, useNavigate } from "react-router-dom"
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/ui/dropdown-menu"
 import FooterComponent from "../components/footer"
@@ -15,9 +15,9 @@ export const PrivateLayout = () => {
     <div className="h-screen flex flex-col">
       <header className="border-b">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <a href="/">
+        <Link to="/">
           <h1 className="text-xl font-bold">ConvoK</h1>
-          </a>
+          </Link>
           <div className="flex items-center gap-4">
             <ThemeToggle />
             <DropdownMenu>
