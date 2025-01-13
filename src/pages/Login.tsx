@@ -14,6 +14,7 @@ import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
 import { useNavigate } from "react-router-dom";
 import { useToast } from "../hooks/use-toast"
+import { useAuth } from '../contexts/AuthContext';
 
 const loginValidationSchema = yup.object({
   email: yup
@@ -47,6 +48,7 @@ export function LoginForm({
   const { toast } = useToast()
 
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -64,13 +66,7 @@ export function LoginForm({
         return;
       }
 
-      toast({
-        title: "User Found",
-        description: "We are comming soon with the dashboard page",
-      })
-
-      sessionStorage.setItem('currentUser', JSON.stringify(user));
-      
+      login(user);
       navigate('/dashboard');
       
     } catch (error) {
