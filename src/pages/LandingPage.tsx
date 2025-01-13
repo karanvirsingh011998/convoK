@@ -426,7 +426,7 @@ export default function LandingPage() {
             </div>
             <div className="relative">
               <div className="aspect-[9/16] rounded-[2.5rem] border-8 border-muted p-2 shadow-xl">
-                <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 to-primary-foreground/20" />
+                <div className="absolute inset-0 from-primary/20 to-primary-foreground/20" />
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
                   <MessageSquare className="h-16 w-16 text-primary mb-4" />
                   <h3 className="text-lg font-semibold mb-2">Mobile Apps Coming Soon</h3>

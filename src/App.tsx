@@ -6,7 +6,13 @@ import { LoginForm } from './pages/Login'
 import { SignUpForm } from './pages/SignUp'
 import LandingPage from './pages/LandingPage'
 import { initializeAdminUser } from './utils/auth'
+import { Profile } from './pages/Profile'
+import { Dashboard } from './pages/Dashboard'
+import { Settings } from './pages/Settings'
 import { NotFound } from './pages/NotFound'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import { PublicRoute } from './components/PublicRoute'
+import { AuthProvider } from './contexts/AuthContext'
 
 function App() {
   useEffect(() => {
@@ -14,24 +20,45 @@ function App() {
   }, []);
 
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route element={<PublicLayout />}>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/register" element={<SignUpForm />} />
-      </Route>
+    <AuthProvider>
+      <Routes>
+        {/* Public Routes */}
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<LandingPage />} />
+          <Route 
+            path="/login" 
+            element={
+              <PublicRoute>
+                <LoginForm />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/register" 
+            element={
+              <PublicRoute>
+                <SignUpForm />
+              </PublicRoute>
+            } 
+          />
+        </Route>
 
-      {/* Private Routes */}
-      <Route element={<PrivateLayout />}>
-        {/* <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/settings" element={<Settings />} /> */}
-      </Route>
-
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  )
+        {/* Private Routes */}
+        <Route 
+          element={
+            <ProtectedRoute>
+              <PrivateLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AuthProvider>
+  );
 }
 
-export default App
+export default App;
