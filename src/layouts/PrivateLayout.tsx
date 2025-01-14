@@ -8,23 +8,19 @@ import {
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
 import FooterComponent from "../components/footer";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from '../contexts/AuthContext';
 
 export const PrivateLayout = () => {
+  const { logout } = useAuth();
   const navigate = useNavigate();
-  const { setIsAuthenticated } = useAuth();
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login'); // Redirect to login page after logout
+  };
   const goToPage = (text: string) => {
-    navigate(text);
-  };
-  
-  const logout = () => {
-    sessionStorage.removeItem("currentUser");
-    if (setIsAuthenticated) {
-      setIsAuthenticated(false);
-    }
-    navigate("/login", { replace: true });
-  };
+    navigate(text);}
+
   return (
     <div className="h-screen flex flex-col">
       <header className="border-b">
@@ -51,7 +47,7 @@ export const PrivateLayout = () => {
                 <DropdownMenuItem onClick={() => goToPage("/settings")}>
                   Settings
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
