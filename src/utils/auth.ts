@@ -2,7 +2,7 @@ export const logout = () => {
   sessionStorage.removeItem('currentUser');
    window.location.href = '/#/login';
 }; 
-
+  
 export const initializeAdminUser = () => {
   const users = JSON.parse(sessionStorage.getItem('users') || '[]');
   
