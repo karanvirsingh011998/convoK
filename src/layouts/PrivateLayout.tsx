@@ -31,7 +31,7 @@ export const PrivateLayout = () => {
                 <DropdownMenuItem onClick={()=> goToPage('/dashboard')}>Dashboard</DropdownMenuItem>
                 <DropdownMenuItem onClick={()=> goToPage('/profile')}>Profile</DropdownMenuItem>
                 <DropdownMenuItem onClick={()=> goToPage('/settings')}>Settings</DropdownMenuItem>
-                <DropdownMenuItem onClick={()=> goToPage('/login')}>Logout</DropdownMenuItem>
+                <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
