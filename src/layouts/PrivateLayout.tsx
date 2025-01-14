@@ -8,9 +8,11 @@ import {
   DropdownMenuTrigger,
 } from "../components/ui/dropdown-menu";
 import FooterComponent from "../components/footer";
+import { useAuth } from "../context/AuthContext";
 
 export const PrivateLayout = () => {
   const navigate = useNavigate();
+  const { setIsAuthenticated } = useAuth();
 
   const goToPage = (text: string) => {
     navigate(text);
@@ -18,9 +20,10 @@ export const PrivateLayout = () => {
   
   const logout = () => {
     sessionStorage.removeItem("currentUser");
-    setTimeout(() => {
-      navigate("/login");
-    }, 1000);
+    if (setIsAuthenticated) {
+      setIsAuthenticated(false);
+    }
+    navigate("/login", { replace: true });
   };
   return (
     <div className="h-screen flex flex-col">

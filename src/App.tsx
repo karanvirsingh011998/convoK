@@ -12,7 +12,7 @@ import { Settings } from './pages/Settings'
 import { NotFound } from './pages/NotFound'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { PublicRoute } from './components/PublicRoute'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider } from './context/AuthContext'
 
 function App() {
   useEffect(() => {
