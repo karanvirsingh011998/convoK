@@ -1,6 +1,6 @@
 export const logout = () => {
   sessionStorage.removeItem('currentUser');
-  window.location.href = '/#/login';
+   window.location.href = '/';
 }; 
 
 export const initializeAdminUser = () => {
