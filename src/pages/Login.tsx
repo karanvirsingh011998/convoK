@@ -1,19 +1,20 @@
-import { cn } from "../lib/utils"
-import { Button } from "../components/ui/button"
+import { cn } from "../lib/utils";
+import { Button } from "../components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../components/ui/card"
-import { Input } from "../components/ui/input"
-import { Label } from "../components/ui/label"
-import { useForm } from "react-hook-form"
-import { yupResolver } from "@hookform/resolvers/yup"
-import * as yup from "yup"
+} from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from "../contexts/AuthContext";
+import axios from 'axios';
 
 const loginValidationSchema = yup.object({
   email: yup
@@ -24,17 +25,17 @@ const loginValidationSchema = yup.object({
     .string()
     .required("Password is required")
     .min(6, "Password must be at least 6 characters"),
-})
+});
 
 type FormData = {
-  email: string
-  password: string
-}
+  email: string;
+  password: string;
+};
 
 export function LoginForm({
-    className,
-    ...props
-  }: React.ComponentPropsWithoutRef<"div">) {
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<"div">) {
   const {
     register,
     handleSubmit,
@@ -42,39 +43,32 @@ export function LoginForm({
     setError,
   } = useForm<FormData>({
     resolver: yupResolver(loginValidationSchema),
-  })
+  });
 
   const navigate = useNavigate();
   const { login } = useAuth();
-
   const onSubmit = async (data: FormData) => {
     try {
-      const users = JSON.parse(sessionStorage.getItem('users') || '[]');
-      
-      const user = users.find((u: any) => 
-        u.email === data.email && u.password === data.password
-      );
-
-      if (!user) {
-        setError('email', { 
-          type: 'manual', 
-          message: 'Invalid email or password' 
-        });
-        return;
-      }
-
-      login(user);
-      navigate('/dashboard');
-      
-    } catch (error) {
-      console.error("Login failed:", error);
+      const url = 'http://localhost:3000/api/auth/login'; // Replace with your API endpoint
+  
+      const response = await axios.post(url, data);
+  
+      console.log('Response:', response.data);
+    } catch (error:any ) {
+      console.error('Error posting data:', error.response ? error.response.data : error.message);
     }
-  }
+  };
 
   return (
-    <div className={cn("h-full flex flex-col gap-6 justify-center items-center", className)} {...props}>
+    <div
+      className={cn(
+        "h-full flex flex-col gap-6 justify-center items-center",
+        className
+      )}
+      {...props}
+    >
       <Card>
-        <CardHeader>    
+        <CardHeader>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
             Enter your email and password below to login to your account
@@ -106,7 +100,9 @@ export function LoginForm({
                   {...register("password")}
                 />
                 {errors.password && (
-                  <p className="text-sm text-red-500">{errors.password.message}</p>
+                  <p className="text-sm text-red-500">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
               <Button type="submit" className="w-full">
@@ -123,7 +119,7 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
 
 // Second Design

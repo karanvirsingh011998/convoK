@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { cn } from "../lib/utils"
 import { useNavigate } from "react-router-dom"
 import { useToast } from "../hooks/use-toast"
+import axios from "axios"
 
 const signUpSchema = yup.object({
   username: yup
@@ -58,36 +59,56 @@ export function SignUpForm({
   const { toast } = useToast()
 
   const navigate = useNavigate()
+  const registerUser = async (userData: any) => {
+const {email, username, password} = userData
+    const payload = {
+      email,password,username
+    }
+    try {
+      const response = await axios.post('http://localhost:3000/api/auth/register', payload, {
+        withCredentials: true
+      });
+      console.log(response,'123456789')
+      return response.data;
+    } catch (error:any) {
+      console.error('Error:', error.response?.data || error.message);
+      throw error;
+    }
+  };
 
   const onSubmit = async (data: SignUpFormData) => {
-    try {
-      const existingUsers = JSON.parse(sessionStorage.getItem('users') || '[]');
-      
-      const userExists = existingUsers.some((user: SignUpFormData) => 
-        user.email === data.email || user.username === data.username
-      );
+    registerUser(data)
+    .then(response => console.log(response))
+    .catch(error => console.error(error));
 
-      if (userExists) {
-        form.setError('email', { 
-          type: 'manual', 
-          message: 'An account with this email or username already exists' 
-        });
-        return;
-      }
+    // try {
+    //   const existingUsers = JSON.parse(sessionStorage.getItem('users') || '[]');
+      
+    //   const userExists = existingUsers.some((user: SignUpFormData) => 
+    //     user.email === data.email || user.username === data.username
+    //   );
 
-      // Add new user to the users array
-      existingUsers.push(data);
-      sessionStorage.setItem('users', JSON.stringify(existingUsers));
+    //   if (userExists) {
+    //     form.setError('email', { 
+    //       type: 'manual', 
+    //       message: 'An account with this email or username already exists' 
+    //     });
+    //     return;
+    //   }
+
+    //   // Add new user to the users array
+    //   existingUsers.push(data);
+    //   sessionStorage.setItem('users', JSON.stringify(existingUsers));
       
-      toast({
-        title: "User Created",
-        description: "Please login with the credentials",
-      })
-      navigate('/login');
+    //   toast({
+    //     title: "User Created",
+    //     description: "Please login with the credentials",
+    //   })
+    //   navigate('/login');
       
-    } catch (error) {
-      console.error("Sign up failed:", error)
-    }
+    // } catch (error) {
+    //   console.error("Sign up failed:", error)
+    // }
   }
 
   return (
